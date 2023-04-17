@@ -20,27 +20,47 @@ class Ensembl:
             case "GRCh37", "https":
                 self.server = "https://grch37.rest.ensembl.org"
 
-    def get(self, endpoint, params, format):
+    def content_type(self, format):
         match format:
             case "json":
                 self.headers["Content-Type"] = "application/json"
-                response = self.session.get(urljoin(self.server, endpoint), headers=self.headers, params=params)
-                return response.json()
             case "xml":
                 self.headers["Content-Type"] = "text/xml"
-                response = self.session.get(urljoin(self.server, endpoint), headers=self.headers, params=params)
-                return response.text
+            case "nh":
+                self.headers["Content-Type"] = "text/x-nh"
+            case "phyloxml":
+                self.headers["Content-Type"] = "text/x-phyloxml+xml"
+            case "orthoxml":
+                self.headers["Content-Type"] = "text/x-orthoxml+xml"
+            case 'gff3':
+                self.headers["Content-Type"] = "text/x-gff3"
+            case 'fasta':
+                self.headers["Content-Type"] = "text/x-fasta"
+            case 'bed':
+                self.headers["Content-Type"] = "text/x-bed"
+            case 'seqxml':
+                self.headers["Content-Type"] = "text/x-seqxml+xml"
+            case 'text':
+                self.headers["Content-Type"] = "text/plain"
+        return self.headers
+
+    def get(self, endpoint, params, format):
+        self.content_type(format)
+        response = self.session.get(
+            urljoin(self.server, endpoint), headers=self.headers, params=params)
+        if self.headers["Content-Type"] == "application/json":
+            return response.json()
+        else:
+            return response.text
 
     def post(self, endpoint, params, json, format):
-        match format:
-            case "json":
-                self.headers["Content-Type"] = "application/json"
-                response = self.session.post(urljoin(self.server, endpoint), headers=self.headers, params=params, json=json)
-                return response.json()
-            case "xml":
-                self.headers["Content-Type"] = "text/xml"
-                response = self.session.post(urljoin(self.server, endpoint), headers=self.headers, params=params, json=json)
-                return response.text
+        self.content_type(format)
+        response = self.session.post(
+            urljoin(self.server, endpoint), headers=self.headers, params=params, json=json)
+        if self.headers["Content-Type"] == "application/json":
+            return response.json()
+        else:
+            return response.text
 
     @singledispatchmethod
     def archive(self, id: str, format="json", **kwargs):
