@@ -513,7 +513,7 @@ mirna=mirna,mutfunc=mutfunc,numbers=numbers,protein=protein,refseq=refseq,shift_
 
 @_vep_id.register
 def _(id:list,species='human',AncestralAllele=None,Blosum62=None,CADD=None,Conservation=None,DisGeNET=None,EVE=None,GO=None,GeneSplicer=None,IntAct=None,LoF=None,Mastermind=None,MaxEntScan=None,
-NMD=None,Phenotypes=None,SpliceAI=None,UTRAnnotator=None,ambiguous_hgvs=None,appris=None,canonical=None,ccds=None,dbNSFP=None,dbscSNV=None,distance=None,domains=None,failed=None,hgvs=None,mane=None,merged=None,minimal=None,
+NMD=None,Phenotypes=None,SpliceAI=None,UTRAnnotator=None,appris=None,canonical=None,ccds=None,dbNSFP=None,dbscSNV=None,distance=None,domains=None,failed=None,hgvs=None,mane=None,merged=None,minimal=None,
 mirna=None,mutfunc=None,numbers=None,protein=None,refseq=None,shift_3prime=None,shift_genomic=None,transcript_id=None,transcript_version=None,tsl=None,uniprot=None,variant_class=None,vcf_string=None,xref_refseq=None,format='json'):
     response =requests.post(f"https://rest.ensembl.org/vep/{species}/id/", headers={"Content-Type": "application/json"}, json={'ids':id},
                                params=dict(AncestralAllele=AncestralAllele,Blosum62=Blosum62,CADD=CADD,Conservation=Conservation,DisGeNET=DisGeNET,EVE=EVE,GO=GO,GeneSplicer=GeneSplicer,IntAct=IntAct,LoF=LoF,Mastermind=Mastermind,MaxEntScan=MaxEntScan,
@@ -521,9 +521,8 @@ NMD=NMD,Phenotypes=Phenotypes,SpliceAI=SpliceAI,UTRAnnotator=UTRAnnotator,appris
 mirna=mirna,mutfunc=mutfunc,numbers=numbers,protein=protein,refseq=refseq,shift_3prime=shift_3prime,shift_genomic=shift_genomic,transcript_id=transcript_id,transcript_version=transcript_version,tsl=tsl,uniprot=uniprot,variant_class=variant_class,vcf_string=vcf_string,xref_refseq=xref_refseq,format=format))
     return response.json()
 
-
 def _vep_region_get(allele:str,region:str,species='human',AncestralAllele=None,Blosum62=None,CADD=None,Conservation=None,DisGeNET=None,EVE=None,GO=None,GeneSplicer=None,IntAct=None,LoF=None,Mastermind=None,MaxEntScan=None,
-NMD=None,Phenotypes=None,SpliceAI=None,UTRAnnotator=None,ambiguous_hgvs=None,appris=None,canonical=None,ccds=None,dbNSFP=None,dbscSNV=None,distance=None,domains=None,failed=None,hgvs=None,mane=None,merged=None,minimal=None,
+NMD=None,Phenotypes=None,SpliceAI=None,UTRAnnotator=None,appris=None,canonical=None,ccds=None,dbNSFP=None,dbscSNV=None,distance=None,domains=None,failed=None,hgvs=None,mane=None,merged=None,minimal=None,
 mirna=None,mutfunc=None,numbers=None,protein=None,refseq=None,shift_3prime=None,shift_genomic=None,transcript_id=None,transcript_version=None,tsl=None,uniprot=None,variant_class=None,vcf_string=None,xref_refseq=None,format='json'):
     response =requests.get(f"https://rest.ensembl.org/vep/{species}/region/{region}/{allele}/", headers={"Content-Type": "application/json"}, 
                                params=dict(AncestralAllele=AncestralAllele,Blosum62=Blosum62,CADD=CADD,Conservation=Conservation,DisGeNET=DisGeNET,EVE=EVE,GO=GO,GeneSplicer=GeneSplicer,IntAct=IntAct,LoF=LoF,Mastermind=Mastermind,MaxEntScan=MaxEntScan,
@@ -531,20 +530,16 @@ NMD=NMD,Phenotypes=Phenotypes,SpliceAI=SpliceAI,UTRAnnotator=UTRAnnotator,appris
 mirna=mirna,mutfunc=mutfunc,numbers=numbers,protein=protein,refseq=refseq,shift_3prime=shift_3prime,shift_genomic=shift_genomic,transcript_id=transcript_id,transcript_version=transcript_version,tsl=tsl,uniprot=uniprot,variant_class=variant_class,vcf_string=vcf_string,xref_refseq=xref_refseq,format=format))
     return response.json()
 
-
-# def _vep_region_post(variants:list,species='human',AncestralAllele=None,Blosum62=None,CADD=None,Conservation=None,DisGeNET=None,EVE=None,GO=None,GeneSplicer=None,IntAct=None,LoF=None,Mastermind=None,MaxEntScan=None,
-# NMD=None,Phenotypes=None,SpliceAI=None,UTRAnnotator=None,ambiguous_hgvs=None,appris=None,canonical=None,ccds=None,dbNSFP=None,dbscSNV=None,distance=None,domains=None,failed=None,hgvs=None,mane=None,merged=None,minimal=None,
-# mirna=None,mutfunc=None,numbers=None,protein=None,refseq=None,shift_3prime=None,shift_genomic=None,transcript_id=None,transcript_version=None,tsl=None,uniprot=None,variant_class=None,vcf_string=None,xref_refseq=None,format='json'):
-#     response =requests.post(f"https://rest.ensembl.org/vep/{species}/region/", headers={"Content-Type": "application/json"}, json={"variants":variants},
-#                                params=dict(AncestralAllele=AncestralAllele,Blosum62=Blosum62,CADD=CADD,Conservation=Conservation,DisGeNET=DisGeNET,EVE=EVE,GO=GO,GeneSplicer=GeneSplicer,IntAct=IntAct,LoF=LoF,Mastermind=Mastermind,MaxEntScan=MaxEntScan,
-# NMD=NMD,Phenotypes=Phenotypes,SpliceAI=SpliceAI,UTRAnnotator=UTRAnnotator,appris=appris,canonical=canonical,ccds=ccds,dbNSFP=dbNSFP,dbscSNV=dbscSNV,distance=distance,domains=domains,failed=failed,hgvs=hgvs,mane=mane,merged=merged,minimal=minimal,
-# mirna=mirna,mutfunc=mutfunc,numbers=numbers,protein=protein,refseq=refseq,shift_3prime=shift_3prime,shift_genomic=shift_genomic,transcript_id=transcript_id,transcript_version=transcript_version,tsl=tsl,uniprot=uniprot,variant_class=variant_class,vcf_string=vcf_string,xref_refseq=xref_refseq,format=format))
-#     return response.json()
-
-def _vep_region_post(region:list,species='homo_sapiens',format='json'):
-    response =requests.post(f"https://rest.ensembl.org/vep/{species}/region/", headers={"Content-Type": "application/json"}, json={"variants":region},
-                               params=dict(format=format))
+def _vep_region_post(variant:list,species='human',AncestralAllele=None,Blosum62=None,CADD=None,Conservation=None,DisGeNET=None,EVE=None,GO=None,GeneSplicer=None,IntAct=None,LoF=None,Mastermind=None,MaxEntScan=None,
+NMD=None,Phenotypes=None,SpliceAI=None,UTRAnnotator=None,ambiguous_hgvs=None,appris=None,canonical=None,ccds=None,dbNSFP=None,dbscSNV=None,distance=None,domains=None,failed=None,hgvs=None,mane=None,merged=None,minimal=None,
+mirna=None,mutfunc=None,numbers=None,protein=None,refseq=None,shift_3prime=None,shift_genomic=None,transcript_id=None,transcript_version=None,tsl=None,uniprot=None,variant_class=None,vcf_string=None,xref_refseq=None,format='json'):
+    response =requests.post(f"https://rest.ensembl.org/vep/{species}/region/", headers={"Content-Type": "application/json"}, json={"variants":variant},
+                               params=dict(AncestralAllele=AncestralAllele,Blosum62=Blosum62,CADD=CADD,Conservation=Conservation,DisGeNET=DisGeNET,EVE=EVE,GO=GO,GeneSplicer=GeneSplicer,IntAct=IntAct,LoF=LoF,Mastermind=Mastermind,MaxEntScan=MaxEntScan,
+NMD=NMD,Phenotypes=Phenotypes,SpliceAI=SpliceAI,UTRAnnotator=UTRAnnotator,appris=appris,canonical=canonical,ccds=ccds,dbNSFP=dbNSFP,dbscSNV=dbscSNV,distance=distance,domains=domains,failed=failed,hgvs=hgvs,mane=mane,merged=merged,minimal=minimal,
+mirna=mirna,mutfunc=mutfunc,numbers=numbers,protein=protein,refseq=refseq,shift_3prime=shift_3prime,shift_genomic=shift_genomic,transcript_id=transcript_id,transcript_version=transcript_version,tsl=tsl,uniprot=uniprot,variant_class=variant_class,vcf_string=vcf_string,xref_refseq=xref_refseq,format=format))
     return response.json()
+
+
 
 def _ga4gh_beacon(format="json"):
         """Retrieves a cafe tree of the gene tree using the gene tree stable identifier"""
@@ -1344,52 +1339,52 @@ vep_region_get.add_argument('--vcf_string',default=None)
 vep_region_get.add_argument('--xref_refseq',default=None)
 
 vep_region_post=subparsers.add_parser('vep_region_post',help='vep_region_post help')
-vep_region_post.add_argument('region')
+vep_region_post.add_argument('variant', action='extend', nargs='+')
 vep_region_post.add_argument('--species',default='homo_sapiens')
 vep_region_post.add_argument('--format', default='json')
-# vep_region_post.add_argument('--AncestralAllele',default=None)
-# vep_region_post.add_argument('--Blosum62',default=None)
-# vep_region_post.add_argument('--CADD',default=None)
-# vep_region_post.add_argument('--Conservation',default=None)
-# vep_region_post.add_argument('--DisGeNET',default=None)
-# vep_region_post.add_argument('--EVE',default=None)
-# vep_region_post.add_argument('--GO',default=None)
-# vep_region_post.add_argument('--GeneSplicer',default=None)
-# vep_region_post.add_argument('--IntAct',default=None)
-# vep_region_post.add_argument('--LoF',default=None)
-# vep_region_post.add_argument('--Mastermind',default=None)
-# vep_region_post.add_argument('--MaxEntScan',default=None)
-# vep_region_post.add_argument('--NMD',default=None)
-# vep_region_post.add_argument('--Phenotypes',default=None)
-# vep_region_post.add_argument('--SpliceAI',default=None)
-# vep_region_post.add_argument('--UTRAnnotator',default=None)
-# vep_region_post.add_argument('--appris',default=None)
-# vep_region_post.add_argument('--callback',default=None)
-# vep_region_post.add_argument('--canonical',default=None)
-# vep_region_post.add_argument('--ccds',default=None)
-# vep_region_post.add_argument('--dbNSFP',default=None)
-# vep_region_post.add_argument('--dbscSNV',default=None)
-# vep_region_post.add_argument('--distance',default=None)
-# vep_region_post.add_argument('--domains',default=None)
-# vep_region_post.add_argument('--failed',default=None)
-# vep_region_post.add_argument('--hgvs',default=None)
-# vep_region_post.add_argument('--mane',default=None)
-# vep_region_post.add_argument('--merged',default=None)
-# vep_region_post.add_argument('--minimal',default=None)
-# vep_region_post.add_argument('--mirna',default=None)
-# vep_region_post.add_argument('--mutfunc',default=None)
-# vep_region_post.add_argument('--numbers',default=None)
-# vep_region_post.add_argument('--protein',default=None)
-# vep_region_post.add_argument('--refseq',default=None)
-# vep_region_post.add_argument('--shift_3prime',default=None)
-# vep_region_post.add_argument('--shift_genomic',default=None)
-# vep_region_post.add_argument('--transcript_id',default=None)
-# vep_region_post.add_argument('--transcript_version',default=None)
-# vep_region_post.add_argument('--tsl',default=None)
-# vep_region_post.add_argument('--uniprot',default=None)
-# vep_region_post.add_argument('--variant_class',default=None)
-# vep_region_post.add_argument('--vcf_string',default=None)
-# vep_region_post.add_argument('--xref_refseq',default=None)
+vep_region_post.add_argument('--AncestralAllele',default=None)
+vep_region_post.add_argument('--Blosum62',default=None)
+vep_region_post.add_argument('--CADD',default=None)
+vep_region_post.add_argument('--Conservation',default=None)
+vep_region_post.add_argument('--DisGeNET',default=None)
+vep_region_post.add_argument('--EVE',default=None)
+vep_region_post.add_argument('--GO',default=None)
+vep_region_post.add_argument('--GeneSplicer',default=None)
+vep_region_post.add_argument('--IntAct',default=None)
+vep_region_post.add_argument('--LoF',default=None)
+vep_region_post.add_argument('--Mastermind',default=None)
+vep_region_post.add_argument('--MaxEntScan',default=None)
+vep_region_post.add_argument('--NMD',default=None)
+vep_region_post.add_argument('--Phenotypes',default=None)
+vep_region_post.add_argument('--SpliceAI',default=None)
+vep_region_post.add_argument('--UTRAnnotator',default=None)
+vep_region_post.add_argument('--appris',default=None)
+vep_region_post.add_argument('--callback',default=None)
+vep_region_post.add_argument('--canonical',default=None)
+vep_region_post.add_argument('--ccds',default=None)
+vep_region_post.add_argument('--dbNSFP',default=None)
+vep_region_post.add_argument('--dbscSNV',default=None)
+vep_region_post.add_argument('--distance',default=None)
+vep_region_post.add_argument('--domains',default=None)
+vep_region_post.add_argument('--failed',default=None)
+vep_region_post.add_argument('--hgvs',default=None)
+vep_region_post.add_argument('--mane',default=None)
+vep_region_post.add_argument('--merged',default=None)
+vep_region_post.add_argument('--minimal',default=None)
+vep_region_post.add_argument('--mirna',default=None)
+vep_region_post.add_argument('--mutfunc',default=None)
+vep_region_post.add_argument('--numbers',default=None)
+vep_region_post.add_argument('--protein',default=None)
+vep_region_post.add_argument('--refseq',default=None)
+vep_region_post.add_argument('--shift_3prime',default=None)
+vep_region_post.add_argument('--shift_genomic',default=None)
+vep_region_post.add_argument('--transcript_id',default=None)
+vep_region_post.add_argument('--transcript_version',default=None)
+vep_region_post.add_argument('--tsl',default=None)
+vep_region_post.add_argument('--uniprot',default=None)
+vep_region_post.add_argument('--variant_class',default=None)
+vep_region_post.add_argument('--vcf_string',default=None)
+vep_region_post.add_argument('--xref_refseq',default=None)
 
 ga4gh_features=subparsers.add_parser('ga4gh_features',help='ga4gh_features help')
 ga4gh_features.add_argument('id')
@@ -1706,10 +1701,9 @@ elif args.command == "vep_region_get":
 NMD=args.NMD,Phenotypes=args.Phenotypes,SpliceAI=args.SpliceAI,UTRAnnotator=args.UTRAnnotator,appris=args.appris,canonical=args.canonical,ccds=args.ccds,dbNSFP=args.dbNSFP,dbscSNV=args.dbscSNV,distance=args.distance,domains=args.domains,failed=args.failed,hgvs=args.hgvs,mane=args.mane,merged=args.merged,minimal=args.minimal,
 mirna=args.mirna,mutfunc=args.mutfunc,numbers=args.numbers,protein=args.protein,refseq=args.refseq,shift_3prime=args.shift_3prime,shift_genomic=args.shift_genomic,transcript_id=args.transcript_id,transcript_version=args.transcript_version,tsl=args.tsl,uniprot=args.uniprot,variant_class=args.variant_class,vcf_string=args.vcf_string,xref_refseq=args.xref_refseq))
 elif args.command == "vep_region_post":
-#     pprint.pprint(_vep_region_post(args.variants,species=args.species,format=args.format,AncestralAllele=args.AncestralAllele,Blosum62=args.Blosum62,CADD=args.CADD,Conservation=args.Conservation,DisGeNET=args.DisGeNET,EVE=args.EVE,GO=args.GO,GeneSplicer=args.GeneSplicer,IntAct=args.IntAct,LoF=args.LoF,Mastermind=args.Mastermind,MaxEntScan=args.MaxEntScan,
-# NMD=args.NMD,Phenotypes=args.Phenotypes,SpliceAI=args.SpliceAI,UTRAnnotator=args.UTRAnnotator,appris=args.appris,canonical=args.canonical,ccds=args.ccds,dbNSFP=args.dbNSFP,dbscSNV=args.dbscSNV,distance=args.distance,domains=args.domains,failed=args.failed,hgvs=args.hgvs,mane=args.mane,merged=args.merged,minimal=args.minimal,
-# mirna=args.mirna,mutfunc=args.mutfunc,numbers=args.numbers,protein=args.protein,refseq=args.refseq,shift_3prime=args.shift_3prime,shift_genomic=args.shift_genomic,transcript_id=args.transcript_id,transcript_version=args.transcript_version,tsl=args.tsl,uniprot=args.uniprot,variant_class=args.variant_class,vcf_string=args.vcf_string,xref_refseq=args.xref_refseq))
-    pprint.pprint(_vep_region_post(args.region,species=args.species,format=args.format))
+    pprint.pprint(_vep_region_post(args.variant,species=args.species,format=args.format,AncestralAllele=args.AncestralAllele,Blosum62=args.Blosum62,CADD=args.CADD,Conservation=args.Conservation,DisGeNET=args.DisGeNET,EVE=args.EVE,GO=args.GO,GeneSplicer=args.GeneSplicer,IntAct=args.IntAct,LoF=args.LoF,Mastermind=args.Mastermind,MaxEntScan=args.MaxEntScan,
+NMD=args.NMD,Phenotypes=args.Phenotypes,SpliceAI=args.SpliceAI,UTRAnnotator=args.UTRAnnotator,appris=args.appris,canonical=args.canonical,ccds=args.ccds,dbNSFP=args.dbNSFP,dbscSNV=args.dbscSNV,distance=args.distance,domains=args.domains,failed=args.failed,hgvs=args.hgvs,mane=args.mane,merged=args.merged,minimal=args.minimal,
+mirna=args.mirna,mutfunc=args.mutfunc,numbers=args.numbers,protein=args.protein,refseq=args.refseq,shift_3prime=args.shift_3prime,shift_genomic=args.shift_genomic,transcript_id=args.transcript_id,transcript_version=args.transcript_version,tsl=args.tsl,uniprot=args.uniprot,variant_class=args.variant_class,vcf_string=args.vcf_string,xref_refseq=args.xref_refseq))
 elif args.command == "ga4gh_beacon":
     pprint.pprint(_ga4gh_beacon(format=args.format))
 elif args.command == "ga4gh_beacon_query":
