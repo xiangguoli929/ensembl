@@ -1,8 +1,25 @@
+import time
 from collections import defaultdict
+from enum import Enum
 from functools import singledispatchmethod
 from urllib.parse import urljoin
 
 import requests
+
+
+class ContentType(Enum):
+    json = "application/json"
+    xml = "text/xml"
+    nh = "text/x-nh"
+    phyloxml = "text/x-phyloxml+xml"
+    orthoxml = "text/x-orthoxml+xml"
+    gff3 = "text/x-gff3"
+    fasta = "text/x-fasta"
+    bed = "text/x-bed"
+    seqxml = "text/x-seqxml+xml"
+    text = "text/plain"
+    yaml = "text/x-yaml"
+    jsonp = "text/javascript"
 
 
 class Ensembl:
@@ -21,42 +38,32 @@ class Ensembl:
                 self.server = "https://grch37.rest.ensembl.org"
 
     def content_type(self, format):
-        match format:
-            case "json":
-                self.headers["Content-Type"] = "application/json"
-            case "xml":
-                self.headers["Content-Type"] = "text/xml"
-            case "nh":
-                self.headers["Content-Type"] = "text/x-nh"
-            case "phyloxml":
-                self.headers["Content-Type"] = "text/x-phyloxml+xml"
-            case "orthoxml":
-                self.headers["Content-Type"] = "text/x-orthoxml+xml"
-            case 'gff3':
-                self.headers["Content-Type"] = "text/x-gff3"
-            case 'fasta':
-                self.headers["Content-Type"] = "text/x-fasta"
-            case 'bed':
-                self.headers["Content-Type"] = "text/x-bed"
-            case 'seqxml':
-                self.headers["Content-Type"] = "text/x-seqxml+xml"
-            case 'text':
-                self.headers["Content-Type"] = "text/plain"
+        self.headers["Content-Type"] = ContentType[format].value
         return self.headers
 
     def get(self, endpoint, params, format):
-        self.content_type(format)
-        response = self.session.get(
-            urljoin(self.server, endpoint), headers=self.headers, params=params)
+        try:
+            response = self.session.get(urljoin(
+                self.server, endpoint), headers=self.content_type(format), params=params)
+        except requests.exceptions.HTTPError:
+            if response.status_code == 429:
+                time.sleep(int(response.headers["Retry-After"]))
+            response = self.session.get(urljoin(
+                self.server, endpoint), headers=self.content_type(format), params=params)
         if self.headers["Content-Type"] == "application/json":
             return response.json()
         else:
             return response.text
 
     def post(self, endpoint, params, json, format):
-        self.content_type(format)
-        response = self.session.post(
-            urljoin(self.server, endpoint), headers=self.headers, params=params, json=json)
+        try:
+            response = self.session.post(urljoin(
+                self.server, endpoint), headers=self.content_type(format), params=params, json=json)
+        except requests.exceptions.HTTPError:
+            if response.status_code == 429:
+                time.sleep(int(response.headers["Retry-After"]))
+            response = self.session.post(urljoin(
+                self.server, endpoint), headers=self.content_type(format), params=params, json=json)
         if self.headers["Content-Type"] == "application/json":
             return response.json()
         else:
