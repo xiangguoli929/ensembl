@@ -1,10 +1,10 @@
-import time
 from collections import defaultdict
 from enum import Enum
 from functools import singledispatchmethod
 from urllib.parse import urljoin
 
 import requests
+from requests.adapters import HTTPAdapter, Retry
 
 
 class ContentType(Enum):
@@ -27,8 +27,10 @@ class Ensembl:
 
     def __init__(self, assembly="GRCh38", scheme="http"):
         self.session = requests.Session()
-        self.count = 0
-        self.request = 0
+        adapter = HTTPAdapter(max_retries=Retry(backoff_factor=3600/55000,
+                                                respect_retry_after_header=True, status_forcelist=[429], allowed_methods=["GET", "POST"]))
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
         match assembly, scheme:
             case "GRCh38", "http":
                 self.server = "http://rest.ensembl.org"
@@ -44,22 +46,9 @@ class Ensembl:
         return self.headers
 
     def get(self, endpoint, params, format):
-        if self.count >= 15:
-            delta = time.time() - self.request
-            if delta < 1:
-                time.sleep(1 - delta)
-            self.request = time.time()
-            self.count = 0
-        try:
-            response = self.session.get(urljoin(
-                self.server, endpoint), headers=self.content_type(format), params=params)
-        except requests.exceptions.HTTPError:
-            if response.status_code == 429:
-                time.sleep(float(response.headers["Retry-After"]))
-            response = self.session.get(urljoin(
-                self.server, endpoint), headers=self.content_type(format), params=params)
+        response = self.session.get(urljoin(
+            self.server, endpoint), headers=self.content_type(format), params=params)
         if response.ok:
-            self.count += 1
             if self.headers["Content-Type"] == "application/json":
                 return response.json()
             else:
@@ -67,20 +56,10 @@ class Ensembl:
         else:
             return response.raise_for_status()
 
-    def post(self, endpoint, params, json, format, size):
-        if len(json.values()) > size:
-            raise ValueError(
-                f"JSON payload size of {json.values()} exceeds the limit of {size}")
-        try:
-            response = self.session.post(urljoin(
-                self.server, endpoint), headers=self.content_type(format), params=params, json=json)
-        except requests.exceptions.HTTPError:
-            if response.status_code == 429:
-                time.sleep(float(response.headers["Retry-After"]))
-            response = self.session.post(urljoin(
-                self.server, endpoint), headers=self.content_type(format), params=params, json=json)
+    def post(self, endpoint, params, json, format):
+        response = self.session.post(urljoin(
+            self.server, endpoint), headers=self.content_type(format), params=params, json=json)
         if response.ok:
-            self.request += len(json.values())
             if self.headers["Content-Type"] == "application/json":
                 return response.json()
             else:
@@ -94,9 +73,9 @@ class Ensembl:
         return self.get(endpoint=f"archive/id/{id}", params=kwargs, format=format)
 
     @archive.register
-    def _(self, id: list, format="json", size=1000, **kwargs):
+    def _(self, id: list, format="json", **kwargs):
         """Retrieve the latest version for a set of identifiers"""
-        return self.post(endpoint=f"archive/id", json={"id": id}, params=kwargs, format=format, size=size)
+        return self.post(endpoint=f"archive/id", json={"id": id}, params=kwargs, format=format)
 
     def cafe_genetree_id(self, id, format="json", **kwargs):
         """Retrieves a cafe tree of the gene tree using the gene tree stable identifier"""
@@ -274,9 +253,9 @@ class Ensembl:
         return self.get(endpoint=f"lookup/id/{id}", params=kwargs, format=format)
 
     @lookup_id.register
-    def _(self, id: list, format="json", size=1000, **kwargs):
+    def _(self, id: list, format="json", **kwargs):
         """Find the species and database for several identifiers. IDs that are not found are returned with no data."""
-        return self.post(endpoint=f"lookup/id", params=kwargs, json={"ids": id}, format=format, size=size)
+        return self.post(endpoint=f"lookup/id", params=kwargs, json={"ids": id}, format=format)
 
     @singledispatchmethod
     def lookup_symbol(self, symbol: str, format="json", species="human", **kwargs):
@@ -284,9 +263,9 @@ class Ensembl:
         return self.get(f"lookup/symbol/{species}/{symbol}", params=kwargs, format=format)
 
     @lookup_symbol.register
-    def _(self, symbol: list, species="human", format="json", size=1000, **kwargs):
+    def _(self, symbol: list, species="human", format="json", **kwargs):
         """Find the species and database for a set of symbols in a linked external database. Unknown symbols are omitted from the response."""
-        return self.post(f"lookup/symbol/{species}", params=kwargs, json={"symbols": symbol}, format=format, size=size)
+        return self.post(f"lookup/symbol/{species}", params=kwargs, json={"symbols": symbol}, format=format)
 
     def map_cdna(self, id, region, format="json", **kwargs):
         """Convert from cDNA coordinates to genomic coordinates. Output reflects forward orientation coordinates as returned from the Ensembl API."""
@@ -398,9 +377,9 @@ class Ensembl:
         return self.get(f"sequence/id/{id}", params=kwargs, format=format)
 
     @sequence_id.register
-    def _(self, id: list, format="json", size=50, **kwargs):
+    def _(self, id: list, format="json", **kwargs):
         """Request multiple types of sequence by a stable identifier list."""
-        return self.post(f"sequence/id", json={'ids': id}, params=kwargs, format=format, size=size)
+        return self.post(f"sequence/id", json={'ids': id}, params=kwargs, format=format)
 
     @singledispatchmethod
     def sequence_region(self, region: str, species, format="json", **kwargs):
@@ -408,9 +387,9 @@ class Ensembl:
         return self.get(f"sequence/region/{species}/{region}", params=kwargs, format=format)
 
     @sequence_region.register
-    def _(self, region: list, species, format="json", size=50, **kwargs):
+    def _(self, region: list, species, format="json", **kwargs):
         """Request multiple types of sequence by a list of regions."""
-        return self.post(f"sequence/region/{species}", json={'region': region}, params=kwargs, format=format, size=size)
+        return self.post(f"sequence/region/{species}", json={'region': region}, params=kwargs, format=format)
 
     def transcript_haplotypes(self, species, id, format="json", **kwargs):
         """Computes observed transcript haplotype sequences based on phased genotype data"""
@@ -428,7 +407,7 @@ class Ensembl:
     @ga4gh_beacon_query.register
     def _(self, query: list, format="json", **kwargs):
         """Return the Beacon response for allele information"""
-        return self.post(f"ga4gh/beacon", json={"query": query}, params=kwargs, format=format, size=6)
+        return self.post(f"ga4gh/beacon", json={"query": query}, params=kwargs, format=format)
 
     def ga4gh_features(self, id, format="json", **kwargs):
         """Return the GA4GH record for a specific sequence feature given its identifier"""
@@ -436,11 +415,11 @@ class Ensembl:
 
     def ga4gh_features_search(self, end, referenceName, start, format="json", **kwargs):
         """Return a list of sequence annotation features in GA4GH format"""
-        return self.post(f"ga4gh/features/search", json=dict(end=end, referenceName=referenceName, start=start, **kwargs), params={}, format=format, size=6)
+        return self.post(f"ga4gh/features/search", json=dict(end=end, referenceName=referenceName, start=start, **kwargs), params={}, format=format)
 
     def ga4gh_callsets_search(self, variantSetId, format="json", **kwargs):
         """Return a list of sets of genotype calls for specific samples in GA4GH format"""
-        return self.post(f"ga4gh/callsets/search", json=dict(variantSetId=variantSetId, **kwargs), params={}, format=format, size=4)
+        return self.post(f"ga4gh/callsets/search", json=dict(variantSetId=variantSetId, **kwargs), params={}, format=format)
 
     def ga4gh_callsets(self, id, format="json", **kwargs):
         """Return the GA4GH record for a specific CallSet given its identifier"""
@@ -448,7 +427,7 @@ class Ensembl:
 
     def ga4gh_datasets_search(self, format="json", **kwargs):
         """Return a list of datasets in GA4GH format"""
-        return self.post(f"ga4gh/datasets/search", json=kwargs, params={}, format=format, size=2)
+        return self.post(f"ga4gh/datasets/search", json=kwargs, params={}, format=format)
 
     def ga4gh_datasets(self, id, format="json", **kwargs):
         """Return the GA4GH record for a specific dataset given its identifier"""
@@ -456,7 +435,7 @@ class Ensembl:
 
     def ga4gh_featuresets_search(self, datasetId, format="json", **kwargs):
         """Return a list of feature sets in GA4GH format"""
-        return self.post(f"ga4gh/featuresets/search", json=dict(datasetId=datasetId, **kwargs), params={}, format=format, size=3)
+        return self.post(f"ga4gh/featuresets/search", json=dict(datasetId=datasetId, **kwargs), params={}, format=format)
 
     def ga4gh_featuresets(self, id, format="json", **kwargs):
         """Return the GA4GH record for a specific featureSet given its identifier"""
@@ -468,15 +447,15 @@ class Ensembl:
 
     def ga4gh_variants_search(self, end, referenceName, start, variantSetId, format="json", **kwargs):
         """Return variant call information in GA4GH format for a region on a reference sequence"""
-        return self.post(f"ga4gh/variants/search", json=dict(end=end, referenceName=referenceName, start=start, variantSetId=variantSetId, **kwargs), params={}, format=format, size=7)
+        return self.post(f"ga4gh/variants/search", json=dict(end=end, referenceName=referenceName, start=start, variantSetId=variantSetId, **kwargs), params={}, format=format)
 
     def ga4gh_variantannotations_search(self, variantAnnotationSetId, format="json", **kwargs):
         """Return variant annotation information in GA4GH format for a region on a reference sequence"""
-        return self.post(f"ga4gh/variantannotations/search", json=dict(variantAnnotationSetId=variantAnnotationSetId, **kwargs), params={}, format=format, size=5)
+        return self.post(f"ga4gh/variantannotations/search", json=dict(variantAnnotationSetId=variantAnnotationSetId, **kwargs), params={}, format=format)
 
     def ga4gh_variantsets_search(self, datasetId, format="json", **kwargs):
         """Return a list of variant sets in GA4GH format"""
-        return self.post(f"ga4gh/variantsets/search", json=dict(datasetId=datasetId, **kwargs), params={}, format=format, size=3)
+        return self.post(f"ga4gh/variantsets/search", json=dict(datasetId=datasetId, **kwargs), params={}, format=format)
 
     def ga4gh_variantsets(self, id, format="json", **kwargs):
         """Return the GA4GH record for a specific VariantSet given its identifier"""
@@ -484,7 +463,7 @@ class Ensembl:
 
     def ga4gh_references_search(self, referenceSetId, format="json", **kwargs):
         """Return a list of reference sequences in GA4GH format"""
-        return self.post(f"ga4gh/references/search", json=dict(referenceSetId=referenceSetId, **kwargs), params={}, size=5, format=format)
+        return self.post(f"ga4gh/references/search", json=dict(referenceSetId=referenceSetId, **kwargs), params={}, format=format)
 
     def ga4gh_references(self, id, format="json", **kwargs):
         """Return data for a specific reference in GA4GH format by id"""
@@ -492,7 +471,7 @@ class Ensembl:
 
     def ga4gh_referencesets_search(self, referenceSetId, format="json", **kwargs):
         """Return a list of reference sets in GA4GH format"""
-        return self.post(f"ga4gh/referencesets/search", json=dict(referenceSetId=referenceSetId, **kwargs), params={}, size=3, format=format)
+        return self.post(f"ga4gh/referencesets/search", json=dict(referenceSetId=referenceSetId, **kwargs), params={}, format=format)
 
     def ga4gh_referencesets(self, id, format="json", **kwargs):
         """Return data for a specific reference set in GA4GH format"""
@@ -500,7 +479,7 @@ class Ensembl:
 
     def ga4gh_variantannotationsets_search(self, variantSetId, format="json", **kwargs):
         """Return a list of annotation sets in GA4GH format"""
-        return self.post(f"ga4gh/variantannotationsets/search", json=dict(variantSetId=variantSetId, **kwargs), params={}, format=format, size=3)
+        return self.post(f"ga4gh/variantannotationsets/search", json=dict(variantSetId=variantSetId, **kwargs), params={}, format=format)
 
     def ga4gh_variantannotationsets(self, id, format="json", **kwargs):
         """Return meta data for a specific annotation set in GA4GH format"""
@@ -512,9 +491,9 @@ class Ensembl:
         return self.get(endpoint=f"variant_recoder/{species}/{id}", params=kwargs, format=format)
 
     @variant_recoder.register
-    def _(self, id: list, species='human', format="json", size=200, **kwargs):
+    def _(self, id: list, species='human', format="json", **kwargs):
         """Translate a list of variant identifiers, HGVS notations or genomic SPDI notations to all possible variant IDs, HGVS and genomic SPDI"""
-        return self.post(endpoint=f"variant_recoder/{species}", params=kwargs, json={"ids": id}, format=format, size=size)
+        return self.post(endpoint=f"variant_recoder/{species}", params=kwargs, json={"ids": id}, format=format)
 
     @singledispatchmethod
     def variation(self, id: str, species='human', format="json", **kwargs):
@@ -522,9 +501,9 @@ class Ensembl:
         return self.get(endpoint=f"variation/{species}/{id}", params=kwargs, format=format)
 
     @variation.register
-    def _(self, id: list, species='human', format="json", size=200, **kwargs):
+    def _(self, id: list, species='human', format="json", **kwargs):
         """Uses a list of variant identifiers (e.g. rsID) to return the variation features including optional genotype, phenotype and population data"""
-        return self.post(endpoint=f"variation/{species}", params=kwargs, json={"ids": id}, format=format, size=size)
+        return self.post(endpoint=f"variation/{species}", params=kwargs, json={"ids": id}, format=format)
 
     def variation_pmcid(self, pmcid, species='human', format="json", **kwargs):
         """Fetch variants by publication using PubMed Central reference number (PMCID)"""
@@ -540,9 +519,9 @@ class Ensembl:
         return self.get(endpoint=f"vep/{species}/hgvs/{hgvs}", params=kwargs, format=format)
 
     @vep_hgvs.register
-    def _(self, hgvs: list, species='human', format="json", size=200, **kwargs):
+    def _(self, hgvs: list, species='human', format="json", **kwargs):
         """Fetch variant consequences for multiple HGVS notations"""
-        return self.post(endpoint=f"vep/{species}/hgvs", params=kwargs, json={"hgvs_notations": hgvs}, format=format, size=size)
+        return self.post(endpoint=f"vep/{species}/hgvs", params=kwargs, json={"hgvs_notations": hgvs}, format=format)
 
     @singledispatchmethod
     def vep_id(self, id: str, species='human', format="json", **kwargs):
@@ -550,16 +529,27 @@ class Ensembl:
         return self.get(endpoint=f"vep/{species}/id/{id}", params=kwargs, format=format)
 
     @vep_id.register
-    def _(self, id: list, species='human', format="json", size=200, **kwargs):
+    def _(self, id: list, species='human', format="json", **kwargs):
         """Fetch variant consequences for multiple ids"""
-        return self.post(endpoint=f"vep/{species}/id", params=kwargs, json={"ids": id}, format=format, size=size)
+        return self.post(endpoint=f"vep/{species}/id", params=kwargs, json={"ids": id}, format=format)
 
     @singledispatchmethod
-    def vep_region(self, region: str, allele, species='human', format="json", size=200, **kwargs):
+    def vep_region(self, region: str, allele, species='human', format="json", **kwargs):
         """Fetch variant consequences based on a region"""
-        return self.get(endpoint=f"vep/{species}/region/{region}/{allele}", params=kwargs, format=format, size=size)
+        return self.get(endpoint=f"vep/{species}/region/{region}/{allele}", params=kwargs, format=format)
 
     @vep_region.register
-    def _(self, region: list, species='human', format="json", size=200, **kwargs):
+    def _(self, region: list, species='human', format="json", **kwargs):
         """Fetch variant consequences for multiple regions"""
-        return self.post(endpoint=f"vep/{species}/region", params=kwargs, json={"variants": region}, format=format, size=size)
+        return self.post(endpoint=f"vep/{species}/region", params=kwargs, json={"variants": region}, format=format)
+
+
+if __name__ == "__main__":
+    import pprint
+    ensembl = Ensembl()
+    pprint.pprint(ensembl.variant_recoder(
+        "NP_001361433.1:p.Asp512Asn", fields='id', var_synonyms=True))
+    print(ensembl.variant_recoder(
+        "NP_001361433.1:p.Asp512Asn", fields='id', format="xml"))
+    pprint.pprint(ensembl.variant_recoder(
+        ["rs137853120", "rs137853119"], fields='id', vcf_string=True))
