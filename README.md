@@ -1,5 +1,13 @@
-# ensembl
-Python implementation of Ensembl REST API
+INSTALLATION
+============
+
+```bash
+pip install ensemblrestpy
+```
+quick start
+========
+
+**Python client for Ensembl REST API**
 ```python
 import pprint
 

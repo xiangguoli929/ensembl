@@ -2755,7 +2755,7 @@ class Ensembl:
             json={"ids": id},
         )
 
-    @singledispatch
+    @singledispatchmethod
     def symbol_lookup(self,
                       symbol: str,
                       species: str,
