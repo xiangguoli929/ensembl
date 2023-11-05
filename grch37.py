@@ -2325,7 +2325,7 @@ class Ensembl:
         method=None,
         response_format="json",
     ):
-        return get(
+        return self.get(
             f"alignment/region/{species}/{region}",
             params=dict(aligned=aligned, callback=callback,
                         mask=mask, method=method),
@@ -2343,7 +2343,7 @@ class Ensembl:
         type=None,
         response_format="json",
     ):
-        return get(
+        return self.get(
             f"homology/id/{id}",
             params=dict(
                 aligned=aligned,
@@ -2368,7 +2368,7 @@ class Ensembl:
         type=None,
         response_format="json",
     ):
-        return get(
+        return self.get(
             f"homology/id/{species}/{id}",
             params=dict(
                 aligned=aligned,
@@ -2394,7 +2394,7 @@ class Ensembl:
         type=None,
         response_format="json",
     ):
-        return get(
+        return self.get(
             f"homology/symbol/{species}/{symbol}",
             params=dict(
                 aligned=aligned,
@@ -2418,7 +2418,7 @@ class Ensembl:
         object_type=None,
         response_format="json",
     ):
-        return get(
+        return self.get(
             f"xrefs/symbol/{species}/{symbol}",
             params=dict(
                 callback=callback,
@@ -2440,7 +2440,7 @@ class Ensembl:
         species=None,
         response_format="json",
     ):
-        return get(
+        return self.get(
             f"xrefs/id/{id}",
             params=dict(
                 all_levels=all_levels,
@@ -2462,7 +2462,7 @@ class Ensembl:
         external_db=None,
         response_format="json",
     ):
-        return get(
+        return self.get(
             f"xrefs/name/{species}/{name}",
             params=dict(callback=callback, db_type=db_type,
                         external_db=external_db),
@@ -2470,7 +2470,7 @@ class Ensembl:
         )
 
     def analysis(self, species: str, callback=None, response_format="json"):
-        return get(
+        return self.get(
             f"info/analysis/{species}",
             params=dict(callback=callback),
             response_format=response_format,
@@ -2484,7 +2484,7 @@ class Ensembl:
         synonyms=None,
         response_format="json",
     ):
-        return get(
+        return self.get(
             f"info/assembly/{species}",
             params=dict(bands=bands, callback=callback, synonyms=synonyms),
             response_format=response_format,
@@ -2499,14 +2499,14 @@ class Ensembl:
         synonyms=None,
         response_format="json",
     ):
-        return get(
+        return self.get(
             f"info/assembly/{species}/{region_name}",
             params=dict(bands=bands, callback=callback, synonyms=synonyms),
             response_format=response_format,
         )
 
     def biotypes(self, species: str, callback=None, response_format="json"):
-        return get(
+        return self.get(
             f"info/biotypes/{species}",
             params=dict(callback=callback),
             response_format=response_format,
@@ -2515,7 +2515,7 @@ class Ensembl:
     def biotypes_groups(
         self, callback=None, group=None, object_type=None, response_format="json"
     ):
-        return get(
+        return self.get(
             f"info/biotypes/groups/{group}/{object_type}",
             params=dict(callback=callback, group=group,
                         object_type=object_type),
@@ -2525,7 +2525,7 @@ class Ensembl:
     def biotypes_name(
         self, name: str, callback=None, object_type=None, response_format="json"
     ):
-        return get(
+        return self.get(
             f"info/biotypes/name/{name}/{object_type}",
             params=dict(callback=callback, object_type=object_type),
             response_format=response_format,
@@ -2921,7 +2921,7 @@ class Ensembl:
         )
 
     def taxonomy_id(self, id: str, callback=None, simple=None, response_format="json"):
-        return self, get(
+        return self.get(
             f"taxonomy/id/{id}",
             params=dict(callback=callback, simple=simple),
             response_format=response_format,
