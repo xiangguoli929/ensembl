@@ -4613,6 +4613,5 @@ if __name__ == "__main__":
     # print(ensembl.references_id("a718acaa6135fdca8357d5bfe94211dd"))
     # print(ensembl.referenceSets())
     # print(ensembl.referenceSets_id("GRCh37.p13"))
-    # print(ensembl.references(referenceSetId="GRCh37.p13", pageSize=10))
     # print(ensembl.VariantAnnotationSet(variantSetId= "Ensembl"))
     # print(ensembl.VariantAnnotationSet_id("Ensembl"))
